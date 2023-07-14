@@ -1,18 +1,20 @@
 #include <iostream>
 
-template <typename T> class Option {
+enum OptionType { Some, None }
+template <typename T> class Option 
+{
 private: 
     T value;
-    bool empty_value;
+    OptionType option_type;
 public:
-    Option() : empty_value(true) {}
-    Option(T incoming_value) : value(incoming_value), empty_value(false) {}
+    Option() : option_type(OptionType::None) {}
+    Option(T incoming_value) : value(incoming_value), option_type(OptionType::Some) {}
 
     bool is_some() {
-        return !empty_value;
+        return option_type == OptionType::Some;
     }
     bool is_none() {
-        return empty_value;
+        return option_type == OptionType::None;
     }
 
     Option operator=(T new_value) {
@@ -20,18 +22,14 @@ public:
         std::cout << new_value << std::endl;
     }
     T expect(char panic_message[]) const {
-        if(empty_value) {
-            throw std::runtime_error(panic_message);
-        }
+        if (is_none()) throw std::runtime_error(panic_message);
         return value;
     }
     T unwrap() const {
         expect("Called unwrap on an empty value!");
     }
     Option and_then(T (*callback)(T)) {
-        if (!empty_value) {
-            return callback(value);
-        }
+        if is_some() return callback(value);
         return *this;
     }
     Option or_else(T (*callback)()) {
@@ -42,12 +40,17 @@ public:
     }
 };
 int mult_by_ten(int input) {
+
+int mult_by_ten(int input)
+{
     return input * 10;
 }
-int return_five(){
+int return_five()
+{
     return 5;
 }
-int main() {
+int main()
+{
     std::cout << "HIIII :3" << std::endl;
 
     Option<int> test1 = Option<int>(2);
