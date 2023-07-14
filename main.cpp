@@ -33,13 +33,49 @@ public:
         return *this;
     }
     Option or_else(T (*callback)()) {
-        if (empty_value) {
-            return callback();
-        }
+        if is_none() return callback();
         return *this;
     }
 };
-int mult_by_ten(int input) {
+
+enum ResultType { Ok, Err }
+template <typename T, typename E> class Result
+{
+private:
+    T value,
+    E error,
+    ResultType result_type,
+public: 
+    Result(E incoming_error) : error(incoming_error), result_type(ResultType::None) {}
+    Result(T incoming_value) : value(incoming_value), result_type(ResultType::Some) {}
+
+    bool is_some() {
+        return result_type == ResultType::Ok;
+    }
+    bool is_none() {
+        return result_type == ResultType::Err;
+    }
+
+    Result operator=(T new_value) {
+        value = new_value;
+        std::cout << new_value << std::endl;
+    }
+    T expect(char panic_message[]) const {
+        if (is_none()) throw std::runtime_error(panic_message);
+        return value;
+    }
+    T unwrap() const {
+        expect("Called unwrap on an empty value!");
+    }
+    Result and_then(T (*callback)(T)) {
+        if is_some() return callback(value);
+        return *this;
+    }
+    Result or_else(T (*callback)()) {
+        if is_none() return callback();
+        return *this;
+    }
+}
 
 int mult_by_ten(int input)
 {
@@ -53,17 +89,33 @@ int main()
 {
     std::cout << "HIIII :3" << std::endl;
 
-    Option<int> test1 = Option<int>(2);
+    Option<int> test11 = Option<int>(2);
 
-    std::cout << (test1.is_some() ? "Yep!" : "Nope...") << std::endl;
-    std::cout << test1.and_then(mult_by_ten).expect("frick") << std::endl;
+    std::cout << (test11.is_some() ? "Yep!" : "Nope...") << std::endl;
+    std::cout << test11.and_then(mult_by_ten).expect("frick") << std::endl;
+
+
+
+    Option<int> test12 = Option<int>();
+
+    std::cout << (test12.is_some() ? "Yep!" : "Nope...") << std::endl;
+    std::cout << test12.or_else(return_five).expect("frick") << std::endl;
+
+
+    std::cout<< "HIIII";
+
+
+    Result<int> test21 = Result<int, float>(2);
+
+    std::cout << (test21.is_some() ? "Yep!" : "Nope...") << std::endl;
+    std::cout << test21.and_then(mult_by_ten).expect("frick") << std::endl;
 
 
 
     Option<int> test2 = Option<int>();
 
-    std::cout << (test2.is_some() ? "Yep!" : "Nope...") << std::endl;
-    std::cout << test2.or_else(return_five).expect("frick") << std::endl;
+    std::cout << (test22.is_some() ? "Yep!" : "Nope...") << std::endl;
+    std::cout << test22.or_else(return_five).expect("frick") << std::endl;
 
     //test = 3;
 }
